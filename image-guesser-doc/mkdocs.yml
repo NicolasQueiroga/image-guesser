@@ -1,0 +1,6 @@
+site_name: My Docs
+site_url: https://example.com/
+nav:
+    - Tutorial: index.md
+    - Intro: intro.md
+    - About: about.md
