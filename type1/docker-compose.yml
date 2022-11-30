@@ -4,8 +4,8 @@ services:
   tensorflow:
     build: 
       context: .
-      shm_size: '8gb'
-    shm_size: '8gb'
+      shm_size: '7gb'
+    shm_size: '7gb'
     network_mode: 'host'
     privileged: true
     environment:
