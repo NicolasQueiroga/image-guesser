@@ -366,25 +366,33 @@ def train(
     plt.legend(["train", "valid"], loc="upper right")
     plt.savefig("loss.png")
 
+
 def read_image(image_path):
     image_array = tf.image.decode_jpeg(tf.io.read_file(image_path), channels=3)
     return tf.image.resize(image_array, (299, 299))
+
 
 def load_models():
     vision_encoder = tf.keras.models.load_model("vision_encoder")
     text_encoder = tf.keras.models.load_model("text_encoder")
     return vision_encoder, text_encoder
-    
+
+
 def generate_image_embeddings(image_paths, vision_encoder, batch_size):
     print(f"Generating embeddings for {len(image_paths)} images...")
     image_embeddings = vision_encoder.predict(
-        tf.data.Dataset.from_tensor_slices(image_paths).map(read_image).batch(batch_size),
+        tf.data.Dataset.from_tensor_slices(image_paths)
+        .map(read_image)
+        .batch(batch_size),
         verbose=1,
     )
     print(f"Image embeddings shape: {image_embeddings.shape}.")
     return image_embeddings
 
-def find_matches(image_embeddings, image_paths, text_encoder, queries, k=9, normalize=True):
+
+def find_matches(
+    image_embeddings, image_paths, text_encoder, queries, k=9, normalize=True
+):
     # Get the embedding for the query.
     query_embedding = text_encoder(tf.convert_to_tensor(queries))
     # Normalize the query and the image embeddings.
@@ -398,7 +406,10 @@ def find_matches(image_embeddings, image_paths, text_encoder, queries, k=9, norm
     # Return matching image paths.
     return [[image_paths[idx] for idx in indices] for indices in results]
 
-def run_model(image_embeddings, image_paths, text_encoder, queries, k=9, normalize=True):
+
+def run_model(
+    image_embeddings, image_paths, text_encoder, queries, k=9, normalize=True
+):
     matches = find_matches(
         image_embeddings, image_paths, text_encoder, queries, k, normalize
     )
@@ -410,41 +421,43 @@ def run_model(image_embeddings, image_paths, text_encoder, queries, k=9, normali
     plt.show()
     return matches
 
-def eval_accuracy(pd: PrepData, batch_size, image_embeddings, k=9):
-        hits = 0
-        num_batches = int(np.ceil(len(pd.image_paths) / batch_size))
-        for idx in tqdm(range(num_batches)):
-            start_idx = idx * batch_size
-            end_idx = start_idx + batch_size
-            current_image_paths = pd.image_paths[start_idx:end_idx]
-            queries = [
-                pd.image_path_to_caption[image_path][0] for image_path in current_image_paths
-            ]
-            result = find_matches(image_embeddings, queries, k)
-            hits += sum(
-                [
-                    image_path in matches
-                    for (image_path, matches) in list(zip(current_image_paths, result))
-                ]
-            )
-        return hits / len(pd.image_paths)
 
-    
+def eval_accuracy(pd: PrepData, batch_size, image_embeddings, k=9):
+    hits = 0
+    num_batches = int(np.ceil(len(pd.image_paths) / batch_size))
+    for idx in tqdm(range(num_batches)):
+        start_idx = idx * batch_size
+        end_idx = start_idx + batch_size
+        current_image_paths = pd.image_paths[start_idx:end_idx]
+        queries = [
+            pd.image_path_to_caption[image_path][0]
+            for image_path in current_image_paths
+        ]
+        result = find_matches(image_embeddings, queries, k)
+        hits += sum(
+            [
+                image_path in matches
+                for (image_path, matches) in list(zip(current_image_paths, result))
+            ]
+        )
+    return hits / len(pd.image_paths)
+
 
 def main(batch_size=128, epochs=10):
     pd = PrepData()
     if not os.path.exists("vision_encoder") or not os.path.exists("text_encoder"):
         train(pd=pd, batch_size=batch_size, epochs=epochs)
-    
+
     # Load the models.
     vision_encoder, text_encoder = load_models()
-    image_embeddings = generate_image_embeddings(pd.image_paths, vision_encoder, batch_size)
+    image_embeddings = generate_image_embeddings(
+        pd.image_paths, vision_encoder, batch_size
+    )
 
     # Get the queries.
     queries = ["a family standing next to the ocean on a sandy beach with a surf board"]
     matches = run_model(image_embeddings, pd.image_paths, text_encoder, queries)
 
-    
     # Evaluate the accuracy.
     print("Scoring training data...")
     train_accuracy = eval_accuracy(pd, batch_size, image_embeddings)
