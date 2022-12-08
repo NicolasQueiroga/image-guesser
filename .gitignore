@@ -161,5 +161,6 @@ cython_debug/
 
 
 .DS_Store
-type1/clip/datasets/*
-
+clip/datasets/*
+clip/text_encoder/*
+clip/vision_encoder/*

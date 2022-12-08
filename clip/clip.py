@@ -179,7 +179,6 @@ def write_data(image_paths, num_files, files_prefix):
 """
 
 
-
 def read_example(example):
     features = tf.io.parse_single_example(
         example,
