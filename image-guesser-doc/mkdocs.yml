@@ -1,6 +1,9 @@
 site_name: My Docs
 site_url: https://example.com/
 nav:
-    - Tutorial: index.md
     - Intro: intro.md
-    - About: about.md
+    - 'Código': 
+        - 'Part 1': code_part1.md
+        - 'Part 2': code_part2.md
+        - 'Part 3': code_part3.md
+
