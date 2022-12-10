@@ -1,4 +1,4 @@
-site_name: My Docs
+site_name: Projeto de Machine Learning
 site_url: https://example.com/
 nav:
     - Intro: intro.md
@@ -7,3 +7,6 @@ nav:
         - 'Part 2': code_part2.md
         - 'Part 3': code_part3.md
 
+theme:
+    name: mkdocs
+    nav_style: dark
