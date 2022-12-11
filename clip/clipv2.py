@@ -3,13 +3,14 @@ import collections
 import json
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 import tensorflow_hub as hub
 import tensorflow_text as text
 import tensorflow_addons as tfa
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import random
+from tensorflow import keras
+from tensorflow.keras import layers
 from tqdm import tqdm
 
 
@@ -380,8 +381,7 @@ def find_matches(
 
     dot_similarity = tf.matmul(query_embedding, image_embeddings, transpose_b=True)
     results = tf.math.top_k(dot_similarity, k).indices.numpy()
-
-    return [[image_paths[idx] for idx in indices] for indices in results]
+    return [[image_paths[index] for index in result] for result in results]
 
 
 def run_model(
@@ -396,10 +396,14 @@ def run_model(
         plt.imshow(plt.imread(matches[0][i]))
         plt.axis("off")
     plt.savefig(f"matches_for_query.png")
+    print("Saving predictions to 'matches_for_query.png'")
     return matches
 
 
-def eval_accuracy(image_paths, batch_size, image_embeddings, k=100):
+# get accuracy for model with 128 batch size
+def compute_top_k_acc(
+    image_embeddings, text_encoder, image_paths, image_path_to_caption, batch_size=128, k=9, normalize=True
+):
     hits = 0
     num_batches = int(np.ceil(len(image_paths) / batch_size))
     for idx in tqdm(range(num_batches)):
@@ -409,7 +413,7 @@ def eval_accuracy(image_paths, batch_size, image_embeddings, k=100):
         queries = [
             image_path_to_caption[image_path][0] for image_path in current_image_paths
         ]
-        result = find_matches(image_embeddings, queries, k)
+        result = find_matches(image_embeddings, current_image_paths, text_encoder, queries, k)
         hits += sum(
             [
                 image_path in matches
@@ -420,12 +424,18 @@ def eval_accuracy(image_paths, batch_size, image_embeddings, k=100):
     return hits / len(image_paths)
 
 
+
+
 def main(batch_size=128, epochs=10):
     pd = PrepData()
     pd.get_data()
     pd.build_coco()
     if not os.path.exists("vision_encoder") or not os.path.exists("text_encoder"):
         train(pd=pd, batch_size=batch_size, epochs=epochs)
+
+    # random_image_paths = random.sample(pd.valid_image_paths, 1000)
+    # image_captions = [pd.image_path_to_caption[image_path][0] for image_path in random_image_paths]
+    # print([image_captions[0]])
 
     # Load the models.
     vision_encoder, text_encoder = load_models()
@@ -434,19 +444,18 @@ def main(batch_size=128, epochs=10):
     )
 
     # Get the queries.
-    queries = ["a family standing next to the ocean on a sandy beach with a surf board"]
-    matches = run_model(image_embeddings, pd.image_paths, text_encoder, queries)
+    queries = ["kids playing soccer"]
+    run_model(image_embeddings, pd.image_paths, text_encoder, queries)
 
     # Evaluate the accuracy.
+    print("Scoring evaluation data...")
+    val_accuracy = compute_top_k_acc(image_embeddings, text_encoder, pd.image_paths[pd.train_size:], pd.image_path_to_caption)
+    print(f"Eval accuracy: {round(val_accuracy * 100, 3)}%")
+
     print("Scoring training data...")
-    train_accuracy = eval_accuracy(pd.train_image_paths, batch_size, image_embeddings)
+    train_accuracy = compute_top_k_acc(image_embeddings, text_encoder, pd.train_image_paths, pd.image_path_to_caption)
     print(f"Train accuracy: {round(train_accuracy * 100, 3)}%")
 
-    print("Scoring evaluation data...")
-    val_accuracy = eval_accuracy(
-        pd.image_paths[train_size:], batch_size, image_embeddings
-    )
-    print(f"Eval accuracy: {round(val_accuracy * 100, 3)}%")
 
 
 if __name__ == "__main__":
