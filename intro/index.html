@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://example.com/intro/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Intro - Projeto de Machine Learning</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="..">Projeto de Machine Learning</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Intro</a>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Código <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../code_part1/" class="dropdown-item">Extração</a>
+</li>
+                                    
+<li>
+    <a href="../code_part2/" class="dropdown-item">Modelagem</a>
+</li>
+                                    
+<li>
+    <a href="../code_part3/" class="dropdown-item">Treinamento</a>
+</li>
+                                    
+<li>
+    <a href="../code/" class="dropdown-item">Código completo</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../referencias/" class="nav-link">Referências</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../code_part1/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#projeto-de-machine-learning-20222" class="nav-link">Projeto de Machine Learning 2022.2</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#contexto" class="nav-link">Contexto</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#motivacao" class="nav-link">Motivação</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="projeto-de-machine-learning-20222">Projeto de Machine Learning 2022.2</h1>
+<h2 id="contexto">Contexto</h2>
+<p>O Deep Learning (aprendizado profundo) é uma técnica de aprendizado de máquina que ensina os computadores a fazerem o que é natural para os humanos: aprender pelo exemplo. O DL é uma tecnologia fundamental por trás dos carros autônomos, permitindo que eles reconheçam um sinal de parada ou distingam um pedestre de um poste de luz. É a chave para o controle de voz em dispositivos de consumo, como telefones, tablets, TVs e alto-falantes viva-voz, entre outras tecnologias presentes em nosso cotidiano. Tal sub-área do aprendizado de máquina está recebendo muita atenção ultimamente e por um bom motivo: alcançar resultados que antes não eram possíveis.</p>
+<p>Embora o <em>deep learning</em> tenha revolucionado a visão computacional, as abordagens atuais têm vários problemas importantes: </p>
+<ul>
+<li>Conjuntos de dados de visão típicos são trabalhosos e caros para criar enquanto ensinam apenas um conjunto restrito de conceitos visuais</li>
+<li>Os modelos de visão padrão são bons em uma tarefa e apenas uma tarefa e exigem um esforço significativo para se adaptar a uma nova tarefa </li>
+<li>Modelos com bom desempenho em benchmarks têm desempenho decepcionantemente ruim em testes de estresse, lançando dúvidas sobre toda a abordagem de aprendizado profundo para visão computacional.</li>
+</ul>
+<h2 id="motivacao">Motivação</h2>
+<p>Para combater essas barreiras, criou-se o <a href="https://openai.com/blog/clip/">CLIP</a>, uma rede neural que pode ser aplicado a qualquer benchmark de classificação visual, simplesmente fornecendo os nomes das categorias visuais a serem reconhecidas, semelhantes aos recursos de “zero-shot” do GPT-2 e GPT-3.</p>
+<p><img alt="Encoders" src="../encoders.png" /></p>
+<p>Nosso projeto foi baseado justamente nessa rede neural, com algumas modificações que iremos mostrar na aba <a href="../code_part1/">Código</a></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

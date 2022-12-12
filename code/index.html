@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://example.com/code/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Código completo - Projeto de Machine Learning</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="..">Projeto de Machine Learning</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../intro/" class="nav-link">Intro</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Código <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../code_part1/" class="dropdown-item">Extração</a>
+</li>
+                                    
+<li>
+    <a href="../code_part2/" class="dropdown-item">Modelagem</a>
+</li>
+                                    
+<li>
+    <a href="../code_part3/" class="dropdown-item">Treinamento</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Código completo</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../referencias/" class="nav-link">Referências</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../code_part3/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../referencias/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<pre><code class="language-py">class PrepData:
+    def __init__(self, datasets_dir: str = &quot;datasets&quot;) -&gt; None:
+        tf.get_logger().setLevel(&quot;ERROR&quot;)
+        self.root_dir = datasets_dir
+        self.annotations_dir = os.path.join(self.root_dir, &quot;annotations&quot;)
+        self.images_dir = os.path.join(self.root_dir, &quot;train2014&quot;)
+        self.tfrecords_dir = os.path.join(self.root_dir, &quot;tfrecords&quot;)
+        self.annotation_file = os.path.join(
+            self.annotations_dir, &quot;captions_train2014.json&quot;
+        )
+        self.train_size = 30000
+        self.valid_size = 5000
+        self.captions_per_image = 2
+        self.images_per_file = 2000
+
+def get_data(self) -&gt; None:
+    # Download caption annotation files
+    if not os.path.exists(self.annotations_dir):
+        annotation_zip = tf.keras.utils.get_file(
+            &quot;captions.zip&quot;,
+            cache_dir=os.path.abspath(&quot;.&quot;),
+            origin=&quot;http://images.cocodataset.org/annotations/annotations_trainval2014.zip&quot;,
+            extract=True,
+        )
+        os.remove(annotation_zip)
+
+    # Download image files
+    if not os.path.exists(self.images_dir):
+        image_zip = tf.keras.utils.get_file(
+            &quot;train2014.zip&quot;,
+            cache_dir=os.path.abspath(&quot;.&quot;),
+            origin=&quot;http://images.cocodataset.org/zips/train2014.zip&quot;,
+            extract=True,
+        )
+        os.remove(image_zip)
+
+    print(&quot;Dataset is downloaded and extracted successfully.&quot;)
+
+def build_coco(self) -&gt; None:
+    with open(self.annotation_file, &quot;r&quot;) as f:
+        annotations = json.load(f)[&quot;annotations&quot;]
+
+    self.image_path_to_caption = collections.defaultdict(list)
+    for element in annotations:
+        caption = f&quot;{element['caption'].lower().rstrip('.')}&quot;
+        image_path = (
+            self.images_dir
+            + &quot;/COCO_train2014_&quot;
+            + &quot;%012d.jpg&quot; % (element[&quot;image_id&quot;])
+        )
+        self.image_path_to_caption[image_path].append(caption)
+
+    self.image_paths = list(self.image_path_to_caption.keys())
+    print(f&quot;Number of images: {len(self.image_paths)}&quot;)
+
+    self.train_image_paths = self.image_paths[: self.train_size]
+    self.num_train_files = int(np.ceil(self.train_size / self.images_per_file))
+    self.train_files_prefix = os.path.join(self.tfrecords_dir, &quot;train&quot;)
+
+    self.valid_image_paths = self.image_paths[-self.valid_size :]
+    self.num_valid_files = int(np.ceil(self.valid_size / self.images_per_file))
+    self.valid_files_prefix = os.path.join(self.tfrecords_dir, &quot;valid&quot;)
+
+    tf.io.gfile.makedirs(self.tfrecords_dir)
+
+class PrepModel:
+    def __init__(
+        self,
+        num_projection_layers: int,
+        projection_dims: int,
+        dropout_rate: float,
+    ) -&gt; None:
+        self.num_projection_layers = num_projection_layers
+        self.projection_dims = projection_dims
+        self.dropout_rate = dropout_rate
+
+def create_vision_encoder(self, trainable=False):
+    # Load the pre-trained Xception model to be used as the base encoder.
+    xception = tf.keras.applications.Xception(
+        include_top=False, weights=&quot;imagenet&quot;, pooling=&quot;avg&quot;
+    )
+    for layer in xception.layers:
+        layer.trainable = trainable
+
+    inputs = layers.Input(shape=(299, 299, 3), name=&quot;image_input&quot;)
+    xception_input = tf.keras.applications.xception.preprocess_input(inputs)
+    embeddings = xception(xception_input)
+    outputs = self.project_embeddings(embeddings)
+
+    return keras.Model(inputs, outputs, name=&quot;vision_encoder&quot;)
+
+def create_text_encoder(self, trainable=False):
+    # Load the BERT preprocessing module.
+    preprocess = hub.KerasLayer(
+        &quot;https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/2&quot;,
+        name=&quot;text_preprocessing&quot;,
+    )
+    # Load the pre-trained BERT model to be used as the base encoder.
+    bert = hub.KerasLayer(
+        &quot;https://tfhub.dev/tensorflow/small_bert/bert_en_uncased_L-4_H-512_A-8/1&quot;,
+        name=&quot;bert&quot;,
+    )
+    bert.trainable = False
+
+    inputs = layers.Input(shape=(), dtype=tf.string, name=&quot;text_input&quot;)
+    bert_inputs = preprocess(inputs)
+    embeddings = bert(bert_inputs)[&quot;pooled_output&quot;]
+    outputs = self.project_embeddings(embeddings)
+
+    return keras.Model(inputs, outputs, name=&quot;text_encoder&quot;)
+
+class DualEncoder(tf.keras.Model):
+    def __init__(self, text_encoder, image_encoder, temperature=1.0, **kwargs):
+        super(DualEncoder, self).__init__(**kwargs)
+        self.text_encoder = text_encoder
+        self.image_encoder = image_encoder
+        self.temperature = temperature
+        self.loss_tracker = tf.keras.metrics.Mean(name=&quot;loss&quot;)
+
+def call(self, features, training=False):
+    with tf.device(&quot;/gpu:0&quot;):
+        caption_embeddings = self.text_encoder(
+            features[&quot;caption&quot;], training=training
+        )
+    with tf.device(&quot;/gpu:1&quot;):
+        image_embeddings = self.image_encoder(features[&quot;image&quot;], training=training)
+    return caption_embeddings, image_embeddings
+
+def compute_loss(self, caption_embeddings, image_embeddings):
+    logits = (
+        tf.matmul(caption_embeddings, image_embeddings, transpose_b=True)
+        / self.temperature
+    )
+    images_similarity = tf.matmul(
+        image_embeddings, image_embeddings, transpose_b=True
+    )
+    captions_similarity = tf.matmul(
+        caption_embeddings, caption_embeddings, transpose_b=True
+    )
+    targets = tf.keras.activations.softmax(
+        (captions_similarity + images_similarity) / (2 * self.temperature)
+    )
+    captions_loss = tf.keras.losses.categorical_crossentropy(
+        y_true=targets, y_pred=logits, from_logits=True
+    )
+    images_loss = tf.keras.losses.categorical_crossentropy(
+        y_true=tf.transpose(targets), y_pred=tf.transpose(logits), from_logits=True
+    )
+
+    return (captions_loss + images_loss) / 2
+
+def train_step(self, features):
+    with tf.GradientTape() as tape:
+        caption_embeddings, image_embeddings = self(features, training=True)
+        loss = self.compute_loss(caption_embeddings, image_embeddings)
+
+    gradients = tape.gradient(loss, self.trainable_variables)
+    self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
+    self.loss_tracker.update_state(loss)
+
+    return {&quot;loss&quot;: self.loss_tracker.result()}
+
+def test_step(self, features):
+    caption_embeddings, image_embeddings = self(features, training=False)
+    loss = self.compute_loss(caption_embeddings, image_embeddings)
+    self.loss_tracker.update_state(loss)
+    return {&quot;loss&quot;: self.loss_tracker.result()}
+
+def train(
+    pd: PrepData,
+    epochs,
+    batch_size,
+    num_projection_layers=1,
+    projection_dims=256,
+    dropout_rate=0.1,
+):
+    # Create vision and text encoders.
+    pm = PrepModel(num_projection_layers, projection_dims, dropout_rate)
+    text_encoder = pm.create_text_encoder()
+    vision_encoder = pm.create_vision_encoder()
+
+    # Create a dual encoder model.
+    dual_encoder = DualEncoder(text_encoder, vision_encoder, temperature=1.0)
+
+    # Compile the model.
+    dual_encoder.compile(
+        optimizer=tf.keras.optimizers.experimental.AdamW(
+            learning_rate=0.001, weight_decay=0.001
+        )
+    )
+
+    # set training and validation data.
+    train_image_paths = pd.train_image_paths
+    num_train_files = int(np.ceil(pd.train_size / pd.images_per_file))
+    train_files_prefix = os.path.join(pd.tfrecords_dir, &quot;train&quot;)
+    train_example_count = pd.write_data(
+        train_image_paths, num_train_files, train_files_prefix
+    )
+    print(f&quot;{train_example_count} training examples were written to tfrecord files.&quot;)
+
+    valid_image_paths = pd.valid_image_paths
+    num_valid_files = int(np.ceil(pd.valid_size / pd.images_per_file))
+    valid_files_prefix = os.path.join(pd.tfrecords_dir, &quot;valid&quot;)
+    valid_example_count = pd.write_data(
+        valid_image_paths, num_valid_files, valid_files_prefix
+    )
+    print(f&quot;{valid_example_count} evaluation examples were written to tfrecord files.&quot;)
+
+    # Start training.
+    print(f&quot;Number of GPUs: {len(tf.config.list_physical_devices('GPU'))}&quot;)
+    print(f&quot;Number of examples (caption-image pairs): {train_example_count}&quot;)
+    print(f&quot;Batch size: {batch_size}&quot;)
+    print(f&quot;Steps per epoch: {int(np.ceil(train_example_count / batch_size))}&quot;)
+
+    # Get TFRecord datasets.
+    train_dataset = pd.get_dataset(
+        os.path.join(pd.tfrecords_dir, &quot;train-*.tfrecord&quot;), batch_size
+    )
+    valid_dataset = pd.get_dataset(
+        os.path.join(pd.tfrecords_dir, &quot;valid-*.tfrecord&quot;), batch_size
+    )
+
+    # Create a learning rate scheduler callback.
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor=&quot;val_loss&quot;, factor=0.2, patience=3
+    )
+
+    # Create an early stopping callback.
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+        monitor=&quot;val_loss&quot;, patience=5, restore_best_weights=True
+    )
+
+    # Train the model.
+    history = dual_encoder.fit(
+        train_dataset,
+        epochs=epochs,
+        validation_data=valid_dataset,
+        callbacks=[reduce_lr, early_stopping],
+    )
+    print(&quot;Training completed. Saving vision and text encoders...&quot;)
+    vision_encoder.save(&quot;vision_encoder&quot;)
+    text_encoder.save(&quot;text_encoder&quot;)
+    print(&quot;Models are saved.&quot;)
+
+    plt.plot(history.history[&quot;loss&quot;])
+    plt.plot(history.history[&quot;val_loss&quot;])
+    plt.ylabel(&quot;Loss&quot;)
+    plt.xlabel(&quot;Epoch&quot;)
+    plt.legend([&quot;train&quot;, &quot;valid&quot;], loc=&quot;upper right&quot;)
+    plt.savefig(&quot;loss.png&quot;)
+
+def load_models():
+    vision_encoder = tf.keras.models.load_model(&quot;vision_encoder&quot;)
+    text_encoder = tf.keras.models.load_model(&quot;text_encoder&quot;)
+    return vision_encoder, text_encoder
+
+
+def generate_image_embeddings(image_paths, vision_encoder, batch_size):
+    print(f&quot;Generating embeddings for {len(image_paths)} images...&quot;)
+    image_embeddings = vision_encoder.predict(
+        tf.data.Dataset.from_tensor_slices(image_paths)
+        .map(read_image)
+        .batch(batch_size),
+        verbose=1,
+    )
+    print(f&quot;Image embeddings shape: {image_embeddings.shape}.&quot;)
+    return image_embeddings
+
+
+def find_matches(
+    image_embeddings, image_paths, text_encoder, queries, k=9, normalize=True
+):
+    query_embedding = text_encoder(tf.convert_to_tensor(queries))
+    if normalize:
+        image_embeddings = tf.math.l2_normalize(image_embeddings, axis=1)
+        query_embedding = tf.math.l2_normalize(query_embedding, axis=1)
+
+    dot_similarity = tf.matmul(query_embedding, image_embeddings, transpose_b=True)
+    results = tf.math.top_k(dot_similarity, k).indices.numpy()
+    return [[image_paths[index] for index in result] for result in results]
+
+
+def run_model(
+    image_embeddings, image_paths, text_encoder, queries, k=9, normalize=True
+):
+    matches = find_matches(
+        image_embeddings, image_paths, text_encoder, queries, k, normalize
+    )
+    plt.figure(figsize=(20, 20))
+    for i in range(9):
+        ax = plt.subplot(3, 3, i + 1)
+        plt.imshow(plt.imread(matches[0][i]))
+        plt.axis(&quot;off&quot;)
+    plt.savefig(f&quot;matches_for_query.png&quot;)
+    print(&quot;Saving predictions to 'matches_for_query.png'&quot;)
+    return matches
+
+def main(batch_size=128, epochs=10):
+    pd = PrepData()
+    pd.get_data()
+    pd.build_coco()
+    if not os.path.exists(&quot;vision_encoder&quot;) or not os.path.exists(&quot;text_encoder&quot;):
+        train(pd=pd, batch_size=batch_size, epochs=epochs)
+
+    # Load the models.
+    vision_encoder, text_encoder = load_models()
+    image_embeddings = generate_image_embeddings(
+        pd.image_paths, vision_encoder, batch_size
+    )
+
+    # Get the queries.
+    queries = [&quot;kids playing soccer&quot;]
+    run_model(image_embeddings, pd.image_paths, text_encoder, queries)
+
+</code></pre></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

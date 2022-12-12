@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://example.com/code_part3/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Treinamento - Projeto de Machine Learning</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="..">Projeto de Machine Learning</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../intro/" class="nav-link">Intro</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Código <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../code_part1/" class="dropdown-item">Extração</a>
+</li>
+                                    
+<li>
+    <a href="../code_part2/" class="dropdown-item">Modelagem</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Treinamento</a>
+</li>
+                                    
+<li>
+    <a href="../code/" class="dropdown-item">Código completo</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../referencias/" class="nav-link">Referências</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../code_part2/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../code/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#parte-iii-treinamento" class="nav-link">Parte III - Treinamento</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="parte-iii-treinamento">Parte III - Treinamento</h1>
+<pre><code class="language-py">def train(
+    pd: PrepData,
+    epochs,
+    batch_size,
+    num_projection_layers=1,
+    projection_dims=256,
+    dropout_rate=0.1,
+):
+    # Create vision and text encoders.
+    pm = PrepModel(num_projection_layers, projection_dims, dropout_rate)
+    text_encoder = pm.create_text_encoder()
+    vision_encoder = pm.create_vision_encoder()
+
+    # Create a dual encoder model.
+    dual_encoder = DualEncoder(text_encoder, vision_encoder, temperature=1.0)
+
+    # Compile the model.
+    dual_encoder.compile(
+        optimizer=tf.keras.optimizers.experimental.AdamW(
+            learning_rate=0.001, weight_decay=0.001
+        )
+    )
+
+    # set training and validation data.
+    train_image_paths = pd.train_image_paths
+    num_train_files = int(np.ceil(pd.train_size / pd.images_per_file))
+    train_files_prefix = os.path.join(pd.tfrecords_dir, &quot;train&quot;)
+    train_example_count = pd.write_data(
+        train_image_paths, num_train_files, train_files_prefix
+    )
+    print(f&quot;{train_example_count} training examples were written to tfrecord files.&quot;)
+
+    valid_image_paths = pd.valid_image_paths
+    num_valid_files = int(np.ceil(pd.valid_size / pd.images_per_file))
+    valid_files_prefix = os.path.join(pd.tfrecords_dir, &quot;valid&quot;)
+    valid_example_count = pd.write_data(
+        valid_image_paths, num_valid_files, valid_files_prefix
+    )
+    print(f&quot;{valid_example_count} evaluation examples were written to tfrecord files.&quot;)
+
+    # Start training.
+    print(f&quot;Number of GPUs: {len(tf.config.list_physical_devices('GPU'))}&quot;)
+    print(f&quot;Number of examples (caption-image pairs): {train_example_count}&quot;)
+    print(f&quot;Batch size: {batch_size}&quot;)
+    print(f&quot;Steps per epoch: {int(np.ceil(train_example_count / batch_size))}&quot;)
+
+    # Get TFRecord datasets.
+    train_dataset = pd.get_dataset(
+        os.path.join(pd.tfrecords_dir, &quot;train-*.tfrecord&quot;), batch_size
+    )
+    valid_dataset = pd.get_dataset(
+        os.path.join(pd.tfrecords_dir, &quot;valid-*.tfrecord&quot;), batch_size
+    )
+
+    # Create a learning rate scheduler callback.
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor=&quot;val_loss&quot;, factor=0.2, patience=3
+    )
+
+    # Create an early stopping callback.
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+        monitor=&quot;val_loss&quot;, patience=5, restore_best_weights=True
+    )
+
+    # Train the model.
+    history = dual_encoder.fit(
+        train_dataset,
+        epochs=epochs,
+        validation_data=valid_dataset,
+        callbacks=[reduce_lr, early_stopping],
+    )
+    print(&quot;Training completed. Saving vision and text encoders...&quot;)
+    vision_encoder.save(&quot;vision_encoder&quot;)
+    text_encoder.save(&quot;text_encoder&quot;)
+    print(&quot;Models are saved.&quot;)
+
+    plt.plot(history.history[&quot;loss&quot;])
+    plt.plot(history.history[&quot;val_loss&quot;])
+    plt.ylabel(&quot;Loss&quot;)
+    plt.xlabel(&quot;Epoch&quot;)
+    plt.legend([&quot;train&quot;, &quot;valid&quot;], loc=&quot;upper right&quot;)
+    plt.savefig(&quot;loss.png&quot;)
+</code></pre>
+<p>Acima temos a função que irá executar por completo a parte de treino do modelo. A função irá receber como entrada o objeto que contém os dados de treino e validação, o número de épocas, o tamanho do batch, o número de camadas de projeção, a dimensão das camadas de projeção e a taxa de dropout. A função irá criar o modelo de texto e o modelo de imagem. A função irá criar o modelo dual encoder. A função irá compilar o modelo dual encoder. A função irá criar os datasets de treino e validação. A função irá criar os callbacks de redução de taxa de aprendizado e de early stopping. A função irá treinar o modelo dual encoder. A função irá salvar os modelos de texto e imagem. A função irá plotar o gráfico da perda do modelo e irá salvar o gráfico em um arquivo. </p>
+<p>Além disso, foi ultizado o <strong>AdamW</strong> ao invés do <strong>Adam</strong>. Otimizadores adaptativos como Adam tornaram-se uma escolha padrão para treinar redes neurais. No entanto, ao buscar resultados de última geração, os pesquisadores geralmente preferem a descida do gradiente estocástico (SGD) com momento, porque foi observado que os modelos treinados com Adam também não generalizam.</p>
+<hr />
+<pre><code class="language-py">def load_models():
+    vision_encoder = tf.keras.models.load_model(&quot;vision_encoder&quot;)
+    text_encoder = tf.keras.models.load_model(&quot;text_encoder&quot;)
+    return vision_encoder, text_encoder
+
+
+def generate_image_embeddings(image_paths, vision_encoder, batch_size):
+    print(f&quot;Generating embeddings for {len(image_paths)} images...&quot;)
+    image_embeddings = vision_encoder.predict(
+        tf.data.Dataset.from_tensor_slices(image_paths)
+        .map(read_image)
+        .batch(batch_size),
+        verbose=1,
+    )
+    print(f&quot;Image embeddings shape: {image_embeddings.shape}.&quot;)
+    return image_embeddings
+
+
+def find_matches(
+    image_embeddings, image_paths, text_encoder, queries, k=9, normalize=True
+):
+    query_embedding = text_encoder(tf.convert_to_tensor(queries))
+    if normalize:
+        image_embeddings = tf.math.l2_normalize(image_embeddings, axis=1)
+        query_embedding = tf.math.l2_normalize(query_embedding, axis=1)
+
+    dot_similarity = tf.matmul(query_embedding, image_embeddings, transpose_b=True)
+    results = tf.math.top_k(dot_similarity, k).indices.numpy()
+    return [[image_paths[index] for index in result] for result in results]
+
+
+def run_model(
+    image_embeddings, image_paths, text_encoder, queries, k=9, normalize=True
+):
+    matches = find_matches(
+        image_embeddings, image_paths, text_encoder, queries, k, normalize
+    )
+    plt.figure(figsize=(20, 20))
+    for i in range(9):
+        ax = plt.subplot(3, 3, i + 1)
+        plt.imshow(plt.imread(matches[0][i]))
+        plt.axis(&quot;off&quot;)
+    plt.savefig(f&quot;matches_for_query.png&quot;)
+    print(&quot;Saving predictions to 'matches_for_query.png'&quot;)
+    return matches
+</code></pre>
+<p>Acima temos as funções que irão executar a parte de inferência do modelo. A função <code>load_models</code> irá carregar os modelos de texto e imagem. A função <code>generate_image_embeddings</code> irá gerar os embeddings das imagens. A função <code>find_matches</code> irá encontrar as imagens mais similares para cada consulta. A função <code>run_model</code> irá executar o modelo e irá salvar as imagens mais similares para cada consulta em um arquivo.</p>
+<hr />
+<pre><code class="language-py">def main(batch_size=128, epochs=10):
+    pd = PrepData()
+    pd.get_data()
+    pd.build_coco()
+    if not os.path.exists(&quot;vision_encoder&quot;) or not os.path.exists(&quot;text_encoder&quot;):
+        train(pd=pd, batch_size=batch_size, epochs=epochs)
+
+    # Load the models.
+    vision_encoder, text_encoder = load_models()
+    image_embeddings = generate_image_embeddings(
+        pd.image_paths, vision_encoder, batch_size
+    )
+
+    # Get the queries.
+    queries = [&quot;kids playing soccer&quot;]
+    run_model(image_embeddings, pd.image_paths, text_encoder, queries)
+</code></pre>
+<p>Acima temos a função principal do script. A função irá instanciar o objeto <code>PrepData</code>. A função irá executar o método <code>get_data</code> do objeto <code>PrepData</code>. A função irá executar o método <code>build_coco</code> do objeto <code>PrepData</code>. A função irá verificar se os modelos de texto e imagem já foram treinados. Caso não tenham sido treinados, a função irá executar a função <code>train</code>. A função irá carregar os modelos de texto e imagem. A função irá gerar os embeddings das imagens. A função irá definir as consultas. A função irá executar o modelo e irá salvar as imagens mais similares para cada consulta em um arquivo.</p>
+<hr /></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

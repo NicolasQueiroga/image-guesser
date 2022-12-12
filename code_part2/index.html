@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://example.com/code_part2/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Modelagem - Projeto de Machine Learning</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="..">Projeto de Machine Learning</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href="../intro/" class="nav-link">Intro</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Código <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../code_part1/" class="dropdown-item">Extração</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active">Modelagem</a>
+</li>
+                                    
+<li>
+    <a href="../code_part3/" class="dropdown-item">Treinamento</a>
+</li>
+                                    
+<li>
+    <a href="../code/" class="dropdown-item">Código completo</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="../referencias/" class="nav-link">Referências</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../code_part1/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../code_part3/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#parte-ii-construcao-do-modelo" class="nav-link">Parte II - Construção do modelo</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="parte-ii-construcao-do-modelo">Parte II - Construção do modelo</h1>
+<pre><code class="language-py">class DualEncoder(tf.keras.Model):
+    def __init__(self, text_encoder, image_encoder, temperature=1.0, **kwargs):
+        super(DualEncoder, self).__init__(**kwargs)
+        self.text_encoder = text_encoder
+        self.image_encoder = image_encoder
+        self.temperature = temperature
+        self.loss_tracker = tf.keras.metrics.Mean(name=&quot;loss&quot;)
+</code></pre>
+<p>Aqui temos uma classe que foi criada para alterar a classe padrão do Keras. A classe irá criar um modelo que irá receber como entrada um texto e uma imagem e irá retornar um vetor de embeddings. A classe também irá criar um método para calcular a perda do modelo.</p>
+<hr />
+<pre><code class="language-py">def call(self, features, training=False):
+    with tf.device(&quot;/gpu:0&quot;):
+        caption_embeddings = self.text_encoder(
+            features[&quot;caption&quot;], training=training
+        )
+    with tf.device(&quot;/gpu:1&quot;):
+        image_embeddings = self.image_encoder(features[&quot;image&quot;], training=training)
+    return caption_embeddings, image_embeddings
+</code></pre>
+<p>Aqui temos o método que irá calcular o vetor de embeddings. O método irá receber como entrada um dicionário que contém o texto e a imagem. O método irá calcular o vetor de embeddings do texto e do vetor de embeddings da imagem e irá retornar os dois vetores de embeddings.</p>
+<hr />
+<pre><code class="language-py">def compute_loss(self, caption_embeddings, image_embeddings):
+    logits = (
+        tf.matmul(caption_embeddings, image_embeddings, transpose_b=True)
+        / self.temperature
+    )
+    images_similarity = tf.matmul(
+        image_embeddings, image_embeddings, transpose_b=True
+    )
+    captions_similarity = tf.matmul(
+        caption_embeddings, caption_embeddings, transpose_b=True
+    )
+    targets = tf.keras.activations.softmax(
+        (captions_similarity + images_similarity) / (2 * self.temperature)
+    )
+    captions_loss = tf.keras.losses.categorical_crossentropy(
+        y_true=targets, y_pred=logits, from_logits=True
+    )
+    images_loss = tf.keras.losses.categorical_crossentropy(
+        y_true=tf.transpose(targets), y_pred=tf.transpose(logits), from_logits=True
+    )
+
+    return (captions_loss + images_loss) / 2
+</code></pre>
+<p>Acima temos a função responsável em atribuir as função de perda (loss functions), uma função que mapeia um evento ou valores de uma ou mais variáveis ​​em um número real representando intuitivamente algum "custo" associado ao evento. Contruímos da seguinte maneira:</p>
+<ul>
+<li>
+<p><strong>Logits</strong>: uma função Logit, também conhecida como função log-odds, é uma função que representa valores de probabilidade de 0 a 1 e de infinito negativo a infinito. A função é inversa à função sigmóide que limita os valores entre 0 e 1 no eixo Y, em vez do eixo X.</p>
+</li>
+<li>
+<p><strong>Image Similarity</strong>: usamos o <code>tf.matmul</code>, que nos a ajudar a realizar uma simples multiplicação de matriz tensorial 2-D.</p>
+</li>
+<li>
+<p><strong>Captions Similarity</strong>: uma tarefa cross-modal que precisa gerar automaticamente sentenças naturais coerentes para descrever o conteúdo da imagem</p>
+</li>
+<li>
+<p><strong>Targets</strong>: em particular, usamos a camada de <em>softmax</em>, que converte um vetor de valores em uma distribuição de probabilidade. Os elementos do vetor de saída estão no intervalo (0, 1) e somam 1. Ele é usada frequentemente usado como ativação a camada de uma rede de classificação porque o resultado pode ser interpretado como uma distribuição de probabilidade.</p>
+</li>
+<li>
+<p><strong>Caption Loss</strong>: auxiliado pelo <code>categorical_crossentropy</code> do <code>tf.keras.losses</code>, onde calcula a perda de entropia cruzada entre os rótulos e as previsões.</p>
+</li>
+<li>
+<p><strong>Image Loss</strong>: aplicação do <code>categorical_crossentropy</code> mas no <code>targets</code> e <code>logits</code>.</p>
+</li>
+</ul>
+<p>Aqui temos o método que irá calcular a perda do modelo. O método irá receber como entrada os vetores de embeddings do texto e da imagem. O método irá calcular a similaridade entre os vetores de embeddings e irá calcular a perda do modelo.</p>
+<p>As funções que foram utilizadas para calcular a similaridade entre os vetores de embeddings foram:</p>
+<ul>
+<li>tf.matmul: Multiplica duas matrizes</li>
+<li>tf.transpose: Transpõe uma matriz</li>
+</ul>
+<p>As funções que foram utilizadas para calcular a perda do modelo foram:</p>
+<ul>
+<li>tf.keras.activations.softmax: Calcula a função softmax</li>
+<li>tf.keras.losses.categorical_crossentropy: Calcula a perda de entropia cruzada categórica</li>
+</ul>
+<hr />
+<pre><code class="language-py">def train_step(self, features):
+    with tf.GradientTape() as tape:
+        caption_embeddings, image_embeddings = self(features, training=True)
+        loss = self.compute_loss(caption_embeddings, image_embeddings)
+
+    gradients = tape.gradient(loss, self.trainable_variables)
+    self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
+    self.loss_tracker.update_state(loss)
+
+    return {&quot;loss&quot;: self.loss_tracker.result()}
+
+def test_step(self, features):
+    caption_embeddings, image_embeddings = self(features, training=False)
+    loss = self.compute_loss(caption_embeddings, image_embeddings)
+    self.loss_tracker.update_state(loss)
+    return {&quot;loss&quot;: self.loss_tracker.result()}
+</code></pre>
+<p>Aqui temos os métodos que irão treinar e testar o modelo. O método de treino irá receber como entrada um dicionário que contém o texto e a imagem. O método irá calcular o vetor de embeddings do texto e do vetor de embeddings da imagem e irá calcular a perda do modelo. O método irá calcular os gradientes e irá atualizar os pesos do modelo. O método irá retornar o valor da perda do modelo.</p>
+<p>O método de teste irá receber como entrada um dicionário que contém o texto e a imagem. O método irá calcular o vetor de embeddings do texto e do vetor de embeddings da imagem e irá calcular a perda do modelo. O método irá retornar o valor da perda do modelo.</p>
+<hr /></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
